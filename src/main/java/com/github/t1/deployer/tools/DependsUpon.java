@@ -8,5 +8,5 @@ import java.lang.annotation.*;
 @Retention(RUNTIME)
 @Target(PACKAGE)
 public @interface DependsUpon {
-    Class<?>[] value() default {};
+    Class<?>[] packagesOf() default {};
 }

@@ -15,18 +15,19 @@ public abstract class AbstractPackageDependenciesTest {
     @Before
     public final void initAbstractPackageDependenciesTest() throws Exception {
         jdepend.addDirectory("target/classes");
-        setupFilter();
+        setupFilters();
         setupDependencies(getDependencyEntryPoints());
         jdepend.analyze();
     }
 
-    private void setupFilter() {
+    protected void setupFilters() {
         PackageFilter filter = new PackageFilter();
         filter.addPackage("java.*");
         filter.addPackage("javax.*");
         filter.addPackage("lombok");
         filter.addPackage("org.slf4j");
         filter.addPackage("com.github.t1.log");
+        filter.addPackage("com.github.t1.config");
         jdepend.setFilter(filter);
     }
 
@@ -48,7 +49,7 @@ public abstract class AbstractPackageDependenciesTest {
     private List<Package> dependenciesOf(Package source) {
         List<Package> result = new ArrayList<>();
         if (source.isAnnotationPresent(DependsUpon.class))
-            for (Class<?> target : source.getAnnotation(DependsUpon.class).value())
+            for (Class<?> target : source.getAnnotation(DependsUpon.class).packagesOf())
                 result.add(target.getPackage());
         return result;
     }
