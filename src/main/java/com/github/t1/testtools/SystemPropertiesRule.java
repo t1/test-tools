@@ -1,4 +1,4 @@
-package com.github.t1.deployer.tools;
+package com.github.t1.testtools;
 
 import java.util.*;
 import java.util.Map.Entry;

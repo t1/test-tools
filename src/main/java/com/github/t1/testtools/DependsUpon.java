@@ -1,4 +1,4 @@
-package com.github.t1.deployer.tools;
+package com.github.t1.testtools;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;

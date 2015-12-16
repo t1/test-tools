@@ -1,4 +1,4 @@
-package com.github.t1.deployer.tools;
+package com.github.t1.testtools;
 
 import static org.junit.Assert.*;
 
