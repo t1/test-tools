@@ -1,26 +1,39 @@
 package com.github.t1.testtools;
 
+import java.util.Optional;
 import java.util.function.*;
 
 import org.junit.rules.ExternalResource;
 
+import lombok.*;
+
+@RequiredArgsConstructor
 public class MementoRule<T> extends ExternalResource {
+    @NonNull
     private final Supplier<T> supplier;
+    @NonNull
     private final Consumer<T> consumer;
-    private final T newValue;
+    @NonNull
+    private final Optional<T> newValue;
 
     private T origValue;
 
+    public MementoRule(Supplier<T> supplier, Consumer<T> consumer) {
+        this(supplier, consumer, Optional.empty());
+    }
+
     public MementoRule(Supplier<T> supplier, Consumer<T> consumer, T newValue) {
-        this.supplier = supplier;
-        this.consumer = consumer;
-        this.newValue = newValue;
+        this(supplier, consumer, Optional.of(newValue));
     }
 
     @Override
     public void before() {
+        newValue.ifPresent(value -> set(value));
+    }
+
+    public void set(T value) {
         this.origValue = supplier.get();
-        consumer.accept(newValue);
+        consumer.accept(value);
     }
 
     @Override
