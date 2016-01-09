@@ -51,7 +51,14 @@
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
-        
+
+        <!-- provided scope -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.13</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- compile scope -->
         <dependency>
             <groupId>jdepend</groupId>

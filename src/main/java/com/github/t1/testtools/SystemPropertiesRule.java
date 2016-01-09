@@ -1,36 +1,54 @@
 package com.github.t1.testtools;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.junit.rules.ExternalResource;
+import org.slf4j.*;
 
 public class SystemPropertiesRule extends ExternalResource {
+    public static Logger log = LoggerFactory.getLogger(SystemPropertiesRule.class);
+
+    public static String setSystemProperty(String key, String value) {
+        String oldValue = (value == null) ? System.clearProperty(key) : System.setProperty(key, value);
+        log.debug("change system property {} from {} to {}", key, oldValue, value);
+        return oldValue;
+    }
+
     private final Map<String, String> oldSystemProperties = new HashMap<>();
+    private Logger originalLogger;
+
+    public SystemPropertiesRule loggingTo(Logger log) {
+        this.originalLogger = SystemPropertiesRule.log;
+        SystemPropertiesRule.log = log;
+        return this;
+    }
 
     public void given(String name) {
-        given(name, System.getProperty(name));
+        oldSystemProperties.put(name, System.getProperty(name));
     }
 
     public void given(String name, Object value) {
-        String previousValue = System.setProperty(name, value.toString());
+        String previousValue = setSystemProperty(name, value.toString());
         oldSystemProperties.put(name, previousValue);
     }
 
     @Override
     public void after() {
-        Iterator<Entry<String, String>> iter = oldSystemProperties.entrySet().iterator();
-        while (iter.hasNext()) {
-            Entry<String, String> entry = iter.next();
-            iter.remove();
-            setSystemProperty(entry.getKey(), entry.getValue());
-        }
+        restoreAll();
+        resetLogger();
     }
 
-    public static void setSystemProperty(String key, String value) {
-        if (value == null)
-            System.clearProperty(key);
-        else
-            System.setProperty(key, value);
+    private void restoreAll() {
+        while (!oldSystemProperties.isEmpty())
+            restore(oldSystemProperties.keySet().iterator().next());
+    }
+
+    public void restore(String key) {
+        setSystemProperty(key, oldSystemProperties.remove(key));
+    }
+
+    private void resetLogger() {
+        if (originalLogger != null)
+            SystemPropertiesRule.log = originalLogger;
     }
 }
