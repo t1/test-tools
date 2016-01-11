@@ -30,7 +30,7 @@
         <repository>
             <id>bintray-t1-javaee-helpers</id>
             <name>t1-javaee-helpers-test-tools</name>
-            <url>https://api.bintray.com/maven/t1/javaee-helpers/test-tools</url>
+            <url>https://api.bintray.com/maven/t1/javaee-helpers/test-tools/;publish=1</url>
         </repository>
     </distributionManagement>
 
