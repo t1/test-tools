@@ -1,128 +1,119 @@
 package com.github.t1.testtools;
 
+import static java.util.Arrays.*;
 import static org.junit.Assert.*;
 
+import java.nio.file.*;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.stream.StreamSupport;
 
 import org.junit.*;
 
-import jdepend.framework.*;
+import com.github.t1.graph.*;
+import com.sun.tools.classfile.*;
+import com.sun.tools.classfile.Dependency.*;
+import com.sun.tools.jdeps.*;
 
 public abstract class AbstractPackageDependenciesTest {
-    private final JDepend jdepend = new JDepend();
-    private final DependencyConstraint constraint = new DependencyConstraint();
+    static final Map<String, Set<String>> packageDependencies = new TreeMap<>();
 
-    @Before
-    public final void initAbstractPackageDependenciesTest() throws Exception {
-        jdepend.addDirectory("target/classes");
-        setupFilters();
-        setupDependencies(getDependencyEntryPoints());
-        jdepend.analyze();
+    @BeforeClass
+    public static void findDependencies() throws Exception {
+        Path path = Paths.get("target/classes");
+        Archive archive = new Archive(path, ClassFileReader.newInstance(path)) {};
+        Finder finder = Dependencies.getClassDependencyFinder();
+
+        archive.reader().getClassFiles()
+                .forEach(classFile -> StreamSupport.stream(finder.findDependencies(classFile).spliterator(), false)
+                        .filter(dependency -> !isAnnotation(dependency))
+                        .filter(dependency -> !self(dependency))
+                        .forEach(dependency -> packageDependencies
+                                .computeIfAbsent(dependency.getOrigin().getPackageName(), key -> new TreeSet<>())
+                                .add(dependency.getTarget().getPackageName())));
     }
 
-    protected void setupFilters() {
-        PackageFilter filter = new PackageFilter();
-        filter.addPackage("java.*");
-        filter.addPackage("javax.*");
-        filter.addPackage("lombok");
-        filter.addPackage("org.slf4j");
-        filter.addPackage("com.github.t1.log");
-        filter.addPackage("com.github.t1.config");
-        jdepend.setFilter(filter);
+    private static boolean self(Dependency dependency) {
+        return dependency.getOrigin().getPackageName().equals(dependency.getTarget().getPackageName());
     }
 
-    public abstract List<Class<?>> getDependencyEntryPoints();
-
-    private void setupDependencies(List<Class<?>> types) {
-        for (Class<?> type : types)
-            loadDependenciesOf(type.getPackage());
+    private static boolean isAnnotation(Dependency dependency) {
+        return type(dependency.getTarget()).isAnnotation();
     }
 
-    private JavaPackage loadDependenciesOf(Package pkg) {
-        JavaPackage result = new JavaPackage(pkg.getName());
-        for (Package target : dependenciesOf(pkg))
-            result.dependsUpon(loadDependenciesOf(target));
-        constraint.addPackage(result);
-        return result;
+    private static Class<?> type(Location location) {
+        try {
+            return Class.forName(location.getClassName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private List<Package> dependenciesOf(Package source) {
-        List<Package> result = new ArrayList<>();
+    protected List<String> getAlwaysAllowedPackages() {
+        return asList("java.*", "javax.*", "lombok", "org.slf4j", "com.github.t1.log", "com.github.t1.config");
+    }
+
+    private List<String> dependenciesOf(Package source) {
+        List<String> result = new ArrayList<>();
         if (source.isAnnotationPresent(DependsUpon.class))
             for (Class<?> target : source.getAnnotation(DependsUpon.class).packagesOf())
-                result.add(target.getPackage());
+                result.add(target.getPackage().getName());
         return result;
-    }
-
-    private abstract static class DependencyPredicate {
-        public abstract boolean apply(JavaPackage javaPackage, JavaPackage efferent);
-
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        protected boolean containsDependency(Collection packages, JavaPackage javaPackage, JavaPackage efferent) {
-            for (JavaPackage candidate : (Collection<JavaPackage>) packages) {
-                if (equals(javaPackage, candidate)) {
-                    Collection<JavaPackage> candidateEfferents = candidate.getEfferents();
-                    for (JavaPackage candidateEfferent : candidateEfferents) {
-                        if (equals(efferent, candidateEfferent)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        protected boolean equals(JavaPackage left, JavaPackage right) {
-            return right.getName().equals(left.getName());
-        }
     }
 
     @Test
     public void shouldHaveNoCycles() {
-        checkDependencies("cyclic dependencies", jdepend.getPackages(), new DependencyPredicate() {
-            @Override
-            public boolean apply(JavaPackage javaPackage, JavaPackage efferent) {
-                return efferent.containsCycle();
-            }
+        Graph<String> graph = new Graph<>();
+        packageDependencies.forEach((key, set) -> {
+            Node<String> node = graph.findOrCreateNode(key);
+            set.stream()
+                    .filter(target -> packageDependencies.containsKey(target))
+                    .forEach(target -> node.linkedTo(graph.findOrCreateNode(target)));
         });
-    }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private void checkDependencies(String message, Collection packages, DependencyPredicate predicate) {
-        StringBuilder out = new StringBuilder();
-        for (JavaPackage javaPackage : (Collection<JavaPackage>) packages) {
-            for (JavaPackage efferent : (Collection<JavaPackage>) javaPackage.getEfferents()) {
-                if (predicate.apply(javaPackage, efferent)) {
-                    out.append(javaPackage.getName()).append(" -> ").append(efferent.getName()).append("\n");
-                }
-            }
-        }
-        if (out.length() > 0) {
-            fail(message + ":\n" + out);
-        }
+        graph.topologicalSort();
     }
 
     @Test
     public void shouldHaveOnlyDefinedDependencies() {
-        checkDependencies("unexpected dependencies", jdepend.getPackages(), new DependencyPredicate() {
-            @Override
-            public boolean apply(JavaPackage javaPackage, JavaPackage efferent) {
-                return !isExpected(javaPackage, efferent);
-            }
+        List<String> unexpected = new ArrayList<>();
+        packageDependencies.keySet().stream()
+                .map(p -> Package.getPackage(p))
+                .forEach(sourcePackage -> {
+                    List<String> allowed = dependenciesOf(sourcePackage);
+                    String source = sourcePackage.getName();
+                    packageDependencies.get(source).stream()
+                            .filter(target -> !source.equals(target))
+                            .filter(target -> !allowed.contains(target))
+                            .filter(target -> !isAlwaysAllowed(target))
+                            .forEach(target -> unexpected.add(source + " -> " + target));
+                });
+        if (!unexpected.isEmpty())
+            fail("unexpected dependencies:\n" + String.join("\n", unexpected));
+    }
 
-            private boolean isExpected(JavaPackage javaPackage, JavaPackage efferent) {
-                return containsDependency(constraint.getPackages(), javaPackage, efferent);
-            }
-        });
+    private boolean isAlwaysAllowed(String target) {
+        return getAlwaysAllowedPackages().stream()
+                .anyMatch(pattern -> {
+                    if (pattern.endsWith("*"))
+                        return target.startsWith(pattern.substring(0, pattern.length() - 1));
+                    else
+                        return pattern.equals(target);
+                });
     }
 
     @Test
     public void shouldHaveNoSpecifiedButUnrealizedDependencies() {
-        checkDependencies("specified but unrealized dependencies", constraint.getPackages(), new DependencyPredicate() {
-            @Override
-            public boolean apply(JavaPackage javaPackage, JavaPackage efferent) {
-                return !containsDependency(jdepend.getPackages(), javaPackage, efferent);
-            }
-        });
+        List<String> unrealized = new ArrayList<>();
+        packageDependencies.keySet().stream()
+                .map(p -> Package.getPackage(p))
+                .forEach(sourcePackage -> {
+                    dependenciesOf(sourcePackage).stream()
+                            .filter(dependency -> !packageDependencies.get(sourcePackage.getName())
+                                    .contains(dependency))
+                            .forEach(target -> unrealized.add(sourcePackage + " -> " + target));
+                });
+        if (!unrealized.isEmpty())
+            fail("unrealized dependencies:\n" + String.join("\n", unrealized));
     }
 }

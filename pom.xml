@@ -14,7 +14,28 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <scm>
+        <developerConnection>scm:git:https://github.com/t1/test-tools</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-t1-javaee-helpers</id>
+            <name>t1-javaee-helpers-test-tools</name>
+            <url>https://api.bintray.com/maven/t1/javaee-helpers/test-tools</url>
+        </repository>
+    </distributionManagement>
+
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -59,11 +80,20 @@
             <version>1.7.13</version>
             <scope>provided</scope>
         </dependency>
+        <!-- system scope -->
+        <dependency>
+            <groupId>system</groupId>
+            <artifactId>jdk-tools</artifactId>
+            <version>jdk</version>
+            <scope>system</scope>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+
         <!-- compile scope -->
         <dependency>
-            <groupId>jdepend</groupId>
-            <artifactId>jdepend</artifactId>
-            <version>2.9.1</version>
+            <groupId>com.github.t1</groupId>
+            <artifactId>graph</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
