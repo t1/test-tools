@@ -35,8 +35,13 @@ public class FileMemento extends ExternalResource {
     }
 
     @Override
-    @SneakyThrows(IOException.class)
     protected void after() {
+        restore();
+    }
+
+    @SneakyThrows(IOException.class)
+    public void restore() {
         write(orig);
     }
+
 }
