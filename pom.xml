@@ -24,7 +24,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
     <distributionManagement>
         <repository>
             <id>bintray-t1-javaee-helpers</id>
