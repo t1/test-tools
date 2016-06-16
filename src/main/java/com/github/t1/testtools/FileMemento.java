@@ -5,6 +5,7 @@ import org.junit.rules.ExternalResource;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 public class FileMemento extends ExternalResource {
@@ -22,8 +23,11 @@ public class FileMemento extends ExternalResource {
     }
 
     @Override
-    protected void before() throws IOException {
+    protected void before() throws IOException { setup(); }
+
+    public FileMemento setup() throws IOException {
         this.orig = read();
+        return this;
     }
 
     public String read() throws IOException {
@@ -44,4 +48,27 @@ public class FileMemento extends ExternalResource {
         write(orig);
     }
 
+    public ShutdownHook restoreOnShutdown() {
+        ShutdownHook hook = new ShutdownHook();
+        Runtime.getRuntime().addShutdownHook(hook);
+        return hook;
+    }
+
+    public class ShutdownHook extends Thread {
+        private int amount = 0;
+        private TimeUnit unit;
+
+        public ShutdownHook after(int amount, TimeUnit unit) {
+            this.amount = amount;
+            this.unit = unit;
+            return this;
+        }
+
+        @SneakyThrows(InterruptedException.class)
+        @Override public void run() {
+            if (amount > 0)
+                unit.sleep(amount);
+            FileMemento.this.restore();
+        }
+    }
 }
