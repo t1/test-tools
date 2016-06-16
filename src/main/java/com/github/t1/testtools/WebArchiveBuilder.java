@@ -17,7 +17,16 @@ public class WebArchiveBuilder {
 
     public final PomEquippedResolveStage POM = Maven.resolver().loadPomFromFile("pom.xml");
 
-    public final WebArchive webArchive = ShrinkWrap.create(WebArchive.class);
+    public final WebArchive webArchive;
+
+    public WebArchiveBuilder(String name) {
+        this.webArchive = ShrinkWrap.create(WebArchive.class, name);
+    }
+
+    public WebArchiveBuilder with(Class<?>... classes) {
+        this.webArchive.addClasses(classes);
+        return this;
+    }
 
     public WebArchiveBuilder with(Package rootPackage) {
         addPackageAndDependencies(rootPackage);

@@ -1,11 +1,10 @@
 package com.github.t1.testtools;
 
-import java.io.IOException;
-import java.nio.file.*;
-
+import lombok.*;
 import org.junit.rules.ExternalResource;
 
-import lombok.*;
+import java.io.IOException;
+import java.nio.file.*;
 
 @RequiredArgsConstructor
 public class FileMemento extends ExternalResource {
@@ -15,6 +14,7 @@ public class FileMemento extends ExternalResource {
 
     @Getter
     private final Path path;
+    @Getter
     private String orig;
 
     public FileMemento(String path) {
