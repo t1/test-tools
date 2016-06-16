@@ -16,6 +16,7 @@ public class FileMemento extends ExternalResource {
     @Getter
     private final Path path;
     @Getter
+    @Setter
     private String orig;
 
     public FileMemento(String path) {
