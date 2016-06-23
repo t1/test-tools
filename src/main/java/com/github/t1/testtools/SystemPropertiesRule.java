@@ -1,16 +1,16 @@
 package com.github.t1.testtools;
 
-import java.util.*;
-
 import org.junit.rules.ExternalResource;
 import org.slf4j.*;
+
+import java.util.*;
 
 public class SystemPropertiesRule extends ExternalResource {
     public static Logger log = LoggerFactory.getLogger(SystemPropertiesRule.class);
 
-    public static String setSystemProperty(String key, String value) {
-        String oldValue = (value == null) ? System.clearProperty(key) : System.setProperty(key, value);
-        log.debug("change system property {} from {} to {}", key, oldValue, value);
+    public static String setSystemProperty(String key, String newValue) {
+        String oldValue = (newValue == null) ? System.clearProperty(key) : System.setProperty(key, newValue);
+        log.debug("change system property {} from {} to {}", key, oldValue, newValue);
         return oldValue;
     }
 
