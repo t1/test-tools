@@ -1,11 +1,10 @@
 package com.github.t1.testtools;
 
-import java.util.Optional;
-import java.util.function.*;
-
+import lombok.*;
 import org.junit.rules.ExternalResource;
 
-import lombok.*;
+import java.util.Optional;
+import java.util.function.*;
 
 @RequiredArgsConstructor
 public class MementoRule<T> extends ExternalResource {
@@ -28,7 +27,7 @@ public class MementoRule<T> extends ExternalResource {
 
     @Override
     public void before() {
-        newValue.ifPresent(value -> set(value));
+        newValue.ifPresent(this::set);
     }
 
     public void set(T value) {

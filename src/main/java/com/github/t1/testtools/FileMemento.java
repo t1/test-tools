@@ -8,16 +8,19 @@ import java.nio.file.*;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class FileMemento extends ExternalResource {
+public class FileMemento extends ExternalResource implements AutoCloseable {
     public static String readFile(Path path) throws IOException {
         return new String(Files.readAllBytes(path));
     }
 
     @Getter
     private final Path path;
+
     @Getter
     @Setter
     private String orig;
+
+    private boolean existed;
 
     public FileMemento(String path) {
         this(Paths.get(path));
@@ -27,7 +30,9 @@ public class FileMemento extends ExternalResource {
     protected void before() throws IOException { setup(); }
 
     public FileMemento setup() throws IOException {
-        this.orig = read();
+        this.existed = Files.isRegularFile(path);
+        if (this.existed)
+            this.orig = read();
         return this;
     }
 
@@ -39,14 +44,16 @@ public class FileMemento extends ExternalResource {
         Files.write(path, contents.getBytes());
     }
 
-    @Override
-    protected void after() {
+    @Override protected void after() {
         restore();
     }
 
+    @Override public void close() { restore(); }
+
     @SneakyThrows(IOException.class)
     public void restore() {
-        write(orig);
+        if (existed)
+            write(orig);
     }
 
     public ShutdownHook restoreOnShutdown() {
