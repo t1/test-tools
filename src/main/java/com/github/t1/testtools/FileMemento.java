@@ -3,9 +3,10 @@ package com.github.t1.testtools;
 import lombok.*;
 import org.junit.rules.ExternalResource;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public class FileMemento extends ExternalResource implements AutoCloseable {
@@ -13,8 +14,8 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
         return new String(Files.readAllBytes(path));
     }
 
-    @Getter
-    private final Path path;
+    private final Supplier<Path> pathSupplier;
+    private Path path;
 
     @Getter
     @Setter
@@ -22,26 +23,34 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
 
     private boolean existed;
 
-    public FileMemento(String path) {
-        this(Paths.get(path));
+    public FileMemento(String path) { this(Paths.get(path)); }
+
+    public FileMemento(File file) { this(file.toPath()); }
+
+    public FileMemento(Path path) { this(() -> path); }
+
+    public Path getPath() {
+        if (path == null)
+            path = pathSupplier.get();
+        return path;
     }
 
     @Override
     protected void before() throws IOException { setup(); }
 
     public FileMemento setup() throws IOException {
-        this.existed = Files.isRegularFile(path);
+        this.existed = Files.isRegularFile(getPath());
         if (this.existed)
             this.orig = read();
         return this;
     }
 
     public String read() throws IOException {
-        return readFile(path);
+        return readFile(getPath());
     }
 
     public void write(String contents) throws IOException {
-        Files.write(path, contents.getBytes());
+        Files.write(getPath(), contents.getBytes());
     }
 
     @Override protected void after() {
