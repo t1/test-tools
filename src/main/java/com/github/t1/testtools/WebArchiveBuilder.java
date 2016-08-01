@@ -6,7 +6,7 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 
 import static java.nio.file.Files.*;
@@ -96,6 +96,11 @@ public class WebArchiveBuilder {
                 .resolve(groupId + ":" + artifactId)
                 .withTransitivity()
                 .asFile());
+        return this;
+    }
+
+    public WebArchiveBuilder webInfFile(String fileName) {
+        webArchive.addAsWebInfResource(new File("src/main/webapp/WEB-INF/" + fileName));
         return this;
     }
 
