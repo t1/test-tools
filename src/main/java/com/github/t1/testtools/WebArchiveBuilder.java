@@ -1,7 +1,7 @@
 package com.github.t1.testtools;
 
 import lombok.SneakyThrows;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.*;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.*;
@@ -100,11 +100,9 @@ public class WebArchiveBuilder {
     }
 
     public WebArchiveBuilder print() {
-        System.out.println(
-                "------------------------------------------------------------------------------------------");
-        System.out.println(webArchive.toString(true));
-        System.out.println(
-                "------------------------------------------------------------------------------------------");
+        System.out.println("---------------------------------------------------------------------------------------");
+        webArchive.getContent().keySet().stream().map(ArchivePath::get).sorted().forEach(System.out::println);
+        System.out.println("---------------------------------------------------------------------------------------");
         return this;
     }
 
