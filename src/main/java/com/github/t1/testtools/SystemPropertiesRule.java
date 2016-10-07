@@ -23,13 +23,19 @@ public class SystemPropertiesRule extends ExternalResource {
         return this;
     }
 
-    public void given(String name) {
-        oldSystemProperties.put(name, System.getProperty(name));
+    @Deprecated public SystemPropertiesRule given(String name) {
+        return memoize(name);
     }
 
-    public void given(String name, Object value) {
-        String previousValue = setSystemProperty(name, value.toString());
-        oldSystemProperties.put(name, previousValue);
+    public SystemPropertiesRule memoize(String name) { return memoize(name, System.getProperty(name)); }
+
+    private SystemPropertiesRule memoize(String name, String value) {
+        oldSystemProperties.put(name, value);
+        return this;
+    }
+
+    public SystemPropertiesRule given(String name, Object value) {
+        return memoize(name, setSystemProperty(name, value.toString()));
     }
 
     @Override
