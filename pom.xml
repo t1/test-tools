@@ -3,7 +3,7 @@
 
     <groupId>com.github.t1</groupId>
     <artifactId>test-tools</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
 
     <name>Test Tools</name>
     <description>Test utilities, e.g. to check dependencies between java packages, a memento rule, et.al.</description>
@@ -15,7 +15,7 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/t1/test-tools</developerConnection>
-        <tag>HEAD</tag>
+        <tag>test-tools-1.3.0</tag>
     </scm>
     <licenses>
         <license>
