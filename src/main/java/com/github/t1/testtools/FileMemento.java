@@ -10,9 +10,11 @@ import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public class FileMemento extends ExternalResource implements AutoCloseable {
-    public static String readFile(Path path) throws IOException {
-        return new String(Files.readAllBytes(path));
-    }
+    @SneakyThrows(IOException.class)
+    public static String readFile(Path path) { return new String(Files.readAllBytes(path)); }
+
+    @SneakyThrows(IOException.class)
+    public static void writeFile(Path path, String contents) { Files.write(path, contents.getBytes()); }
 
     private final Supplier<Path> pathSupplier;
     private Path path;
@@ -36,22 +38,20 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
     }
 
     @Override
-    protected void before() throws IOException { setup(); }
+    protected void before() { setup(); }
 
-    public FileMemento setup() throws IOException {
+    public FileMemento setup() {
         this.existed = Files.isRegularFile(getPath());
         if (this.existed)
             this.orig = read();
         return this;
     }
 
-    public String read() throws IOException {
+    public String read() {
         return readFile(getPath());
     }
 
-    public void write(String contents) throws IOException {
-        Files.write(getPath(), contents.getBytes());
-    }
+    public void write(String contents) { writeFile(getPath(), contents); }
 
     @Override protected void after() {
         restore();
@@ -59,7 +59,6 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
 
     @Override public void close() { restore(); }
 
-    @SneakyThrows(IOException.class)
     public void restore() {
         if (existed)
             write(orig);

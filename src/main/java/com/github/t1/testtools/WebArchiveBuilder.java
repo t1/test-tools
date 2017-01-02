@@ -50,12 +50,14 @@ public class WebArchiveBuilder {
     @SneakyThrows(IOException.class)
     private void addPackage(Package pkg) {
         Path path = resolvePackagePath(pkg);
-        for (Path file : newDirectoryStream(path)) {
-            if (isDirectory(file))
-                continue;
-            if (isSourceFile(file)) {
-                String className = toClassName(file);
-                webArchive.addClass(className);
+        try (DirectoryStream<Path> paths = newDirectoryStream(path)) {
+            for (Path file : paths) {
+                if (isDirectory(file))
+                    continue;
+                if (isSourceFile(file)) {
+                    String className = toClassName(file);
+                    webArchive.addClass(className);
+                }
             }
         }
     }
@@ -66,8 +68,7 @@ public class WebArchiveBuilder {
     }
 
     private boolean isSourceFile(Path path) {
-        String fileName = path.getFileName().toString();
-        return fileName.endsWith(".java") && !"package-info.java".equals(fileName);
+        return path.getFileName().toString().endsWith(".java");
     }
 
     private String toClassName(Path path) {
@@ -104,14 +105,12 @@ public class WebArchiveBuilder {
         return this;
     }
 
-    public WebArchiveBuilder print() {
+    @SuppressWarnings("UseOfSystemOutOrSystemErr") public WebArchiveBuilder print() {
         System.out.println("---------------------------------------------------------------------------------------");
         webArchive.getContent().keySet().stream().map(ArchivePath::get).sorted().forEach(System.out::println);
         System.out.println("---------------------------------------------------------------------------------------");
         return this;
     }
 
-    public WebArchive build() {
-        return webArchive;
-    }
+    public WebArchive build() { return webArchive; }
 }
