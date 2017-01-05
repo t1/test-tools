@@ -3,6 +3,9 @@ package com.github.t1.testtools;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import static com.github.t1.testtools.TestLoggerRule.CamelState.*;
+import static java.lang.Character.*;
+
 public class TestLoggerRule extends TestWatcher {
     private long startTime;
 
@@ -27,15 +30,57 @@ public class TestLoggerRule extends TestWatcher {
         return out.toString();
     }
 
-    private String camelToSpaces(String string) {
-        StringBuilder out = new StringBuilder();
-        for (char c : string.toCharArray()) {
-            if (Character.isUpperCase(c)) {
-                out.append(' ');
-                out.append(Character.toLowerCase(c));
-            } else {
-                out.append(c);
+    enum CamelState {
+        lower {
+            @Override public CamelState apply(char c, StringBuilder out) {
+                if (isDigit(c)) {
+                    appendSpace(out).append(c);
+                    return digits;
+                } else if (isUpperCase(c)) {
+                    appendSpace(out).append(toLowerCase(c));
+                    return upper;
+                } else {
+                    out.append(c);
+                    return lower;
+                }
             }
+        },
+        upper {
+            @Override public CamelState apply(char c, StringBuilder out) {
+                if (isDigit(c)) {
+                    appendSpace(out).append(c);
+                    return digits;
+                } else {
+                    out.append(toLowerCase(c));
+                    return (isUpperCase(c)) ? upper : lower;
+                }
+            }
+        },
+        digits {
+            @Override public CamelState apply(char c, StringBuilder out) {
+                if (isDigit(c)) {
+                    out.append(c);
+                    return digits;
+                }
+                CamelState.appendSpace(out).append(toLowerCase(c));
+                return (isUpperCase(c)) ? upper : lower;
+            }
+        };
+
+        public abstract CamelState apply(char c, StringBuilder out);
+
+        private static StringBuilder appendSpace(StringBuilder out) {
+            if (out.length() > 0)
+                out.append(' ');
+            return out;
+        }
+    }
+
+    public static String camelToSpaces(String string) {
+        StringBuilder out = new StringBuilder();
+        CamelState state = lower;
+        for (char c : string.toCharArray()) {
+            state = state.apply(c, out);
         }
         return out.toString();
     }
