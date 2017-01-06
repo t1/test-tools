@@ -131,5 +131,17 @@
             <version>3.1.5</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.github.t1</groupId>
+            <artifactId>make</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.core</groupId>
+            <artifactId>wildfly-controller-client</artifactId>
+            <version>2.2.0.Final</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 </project>
