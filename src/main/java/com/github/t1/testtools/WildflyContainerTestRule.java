@@ -28,7 +28,6 @@ import static java.time.temporal.ChronoUnit.*;
 
 @Slf4j
 public class WildflyContainerTestRule extends ExternalResource {
-
     private static final String LINE = "\n==================================================================";
 
     @SneakyThrows(InterruptedException.class)
@@ -66,6 +65,8 @@ public class WildflyContainerTestRule extends ExternalResource {
     public Path configFile() { return configDir().resolve("standalone.xml"); }
 
     public URI baseUri() { return baseUri; }
+
+    public Xml readConfig() { return Xml.load(configFile().toUri()); }
 
     public WildflyContainerTestRule withLogger(String category, LogLevel level) {
         if (logging.find("logger[@category='" + category + "']").isEmpty())
