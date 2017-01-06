@@ -12,7 +12,8 @@ import static java.util.stream.Collectors.*;
 
 /**
  * JUnit launches tests in an arbitrary but fixed order (by their checksum). Use this {@link org.junit.runner.Runner}
- * to run the tests in the order they are defined in the source file.
+ * to run the tests in the order they are defined in the source file. It's not perfect, though, as a field with the
+ * same name as a method will confuse the order, but this should only be a quite esoteric limitation.
  *
  * NOTE: Handle With Care! Tests should generally independent of each other, so the should be runnable in any order.
  * It's a smell to rely on the order, but sometimes it's necessary (esp. with integration tests).
