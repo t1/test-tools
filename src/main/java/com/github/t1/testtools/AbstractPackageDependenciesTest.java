@@ -6,6 +6,7 @@ import com.sun.tools.classfile.Dependency.*;
 import com.sun.tools.jdeps.*;
 import org.junit.*;
 
+import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.*;
@@ -15,6 +16,8 @@ import static java.util.Arrays.*;
 import static org.junit.Assert.*;
 
 public abstract class AbstractPackageDependenciesTest {
+    public static final Path DEPENDENCIES_DOT = Paths.get("target/dependencies.dot");
+
     static final Map<String, Set<String>> packageDependencies = new TreeMap<>();
 
     @BeforeClass
@@ -37,9 +40,7 @@ public abstract class AbstractPackageDependenciesTest {
         return dependency.getOrigin().getPackageName().equals(dependency.getTarget().getPackageName());
     }
 
-    private static boolean isAnnotation(Dependency dependency) {
-        return type(dependency.getTarget()).isAnnotation();
-    }
+    private static boolean isAnnotation(Dependency dependency) { return type(dependency.getTarget()).isAnnotation(); }
 
     private static Class<?> type(Location location) {
         try {
@@ -125,5 +126,60 @@ public abstract class AbstractPackageDependenciesTest {
                                         sourcePackage + " -> " + target)));
         if (!unrealized.isEmpty())
             fail("unrealized dependencies:\n" + String.join("\n", unrealized));
+    }
+
+    /**
+     * Produces a file <code>target/dependencies.dot</code> with a directed graph of the inner dependencies,
+     * i.e. the dependencies between the packages that have outgoing edges; external dependencies (on libraries, etc.)
+     * are omitted.
+     *
+     * To produce a PNG file, you'll need, e.g., the <code>graphviz</code> package,
+     * which contains the <code>dot</code> program. Then you can call, e.g.:
+     * <code>dot target/dependencies.dot -Tpng -o target/dependencies.png</code>
+     */
+    @Test
+    public void shouldProduceDotFile() {
+        String common = findCommon(packageDependencies.keySet());
+        try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(DEPENDENCIES_DOT))) {
+            out.println("strict digraph {");
+            out.println("    node [shape=box];");
+            out.println();
+            packageDependencies
+                    .keySet()
+                    .forEach(source -> packageDependencies
+                            .get(source)
+                            .forEach(target -> {
+                                if (packageDependencies.keySet().contains(target)) {
+                                    out.println("    \"" + shorten(common, source)
+                                            + "\" -> \"" + shorten(common, target) + "\";");
+                                }
+                            }));
+            out.println("}");
+        } catch (IOException e) {
+            throw new RuntimeException("can'r write " + DEPENDENCIES_DOT, e);
+        }
+    }
+
+    private String findCommon(Set<String> strings) {
+        String result = "";
+        if (strings.iterator().hasNext()) {
+            String first = strings.iterator().next();
+            for (int i = 1; i <= first.length(); i++) {
+                String common = first.substring(0, i);
+                if (!strings.stream().allMatch(s -> s.startsWith(common)))
+                    break;
+                result = common;
+            }
+        }
+        return result;
+    }
+
+    private String shorten(String common, String text) {
+        if (common.isEmpty() || common.equals(text) || !text.startsWith(common))
+            return text;
+        String substring = text.substring(common.length());
+        if (substring.startsWith("."))
+            substring = substring.substring(1);
+        return substring;
     }
 }
