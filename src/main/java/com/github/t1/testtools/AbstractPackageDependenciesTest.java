@@ -139,7 +139,7 @@ public abstract class AbstractPackageDependenciesTest {
      */
     @Test
     public void shouldProduceDotFile() {
-        String common = findCommon(packageDependencies.keySet());
+        Path common = findCommon(packageDependencies.keySet());
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(DEPENDENCIES_DOT))) {
             out.println("strict digraph {");
             out.println("    node [shape=box];");
@@ -150,8 +150,8 @@ public abstract class AbstractPackageDependenciesTest {
                             .get(source)
                             .forEach(target -> {
                                 if (packageDependencies.keySet().contains(target)) {
-                                    out.println("    \"" + shorten(common, source)
-                                            + "\" -> \"" + shorten(common, target) + "\";");
+                                    out.println("    \"" + shorten(common, toPath(source))
+                                            + "\" -> \"" + shorten(common, toPath(target)) + "\";");
                                 }
                             }));
             out.println("}");
@@ -160,13 +160,13 @@ public abstract class AbstractPackageDependenciesTest {
         }
     }
 
-    private String findCommon(Set<String> strings) {
-        String result = "";
+    private Path findCommon(Set<String> strings) {
+        Path result = Paths.get("");
         if (strings.iterator().hasNext()) {
-            String first = strings.iterator().next();
-            for (int i = 1; i <= first.length(); i++) {
-                String common = first.substring(0, i);
-                if (!strings.stream().allMatch(s -> s.startsWith(common)))
+            Path first = toPath(strings.iterator().next());
+            for (int i = 1; i <= first.getNameCount(); i++) {
+                Path common = first.subpath(0, i);
+                if (!strings.stream().allMatch(s -> toPath(s).startsWith(common)))
                     break;
                 result = common;
             }
@@ -174,12 +174,11 @@ public abstract class AbstractPackageDependenciesTest {
         return result;
     }
 
-    private String shorten(String common, String text) {
-        if (common.isEmpty() || common.equals(text) || !text.startsWith(common))
-            return text;
-        String substring = text.substring(common.length());
-        if (substring.startsWith("."))
-            substring = substring.substring(1);
-        return substring;
+    private Path toPath(String text) { return Paths.get("", text.split("\\.")); }
+
+    private Path shorten(Path common, Path path) {
+        if (common.getNameCount()==0 || common.equals(path) || !path.startsWith(common))
+            return path;
+        return path.subpath(common.getNameCount(), path.getNameCount());
     }
 }
