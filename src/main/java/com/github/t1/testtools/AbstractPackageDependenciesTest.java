@@ -1,6 +1,7 @@
 package com.github.t1.testtools;
 
 import com.github.t1.graph.*;
+import com.github.t1.graph.Node;
 import com.sun.tools.classfile.*;
 import com.sun.tools.classfile.Dependency.*;
 import com.sun.tools.jdeps.*;
@@ -10,9 +11,11 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.*;
-import java.util.stream.StreamSupport;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.*;
 
 import static java.util.Arrays.*;
+import static java.util.stream.Collectors.*;
 import static org.junit.Assert.*;
 
 public abstract class AbstractPackageDependenciesTest {
@@ -141,26 +144,83 @@ public abstract class AbstractPackageDependenciesTest {
     public void shouldProduceDotFile() {
         Path common = findCommon(packageDependencies.keySet());
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(DEPENDENCIES_DOT))) {
-            out.println("strict digraph {");
-            out.println("    node [shape=box];");
-            out.println();
-            packageDependencies
-                    .keySet()
-                    .forEach(source -> packageDependencies
-                            .get(source)
-                            .forEach(target -> {
-                                if (packageDependencies.keySet().contains(target)) {
-                                    out.println("    " + shorten(common, toPath(source))
-                                            + " -> " + shorten(common, toPath(target)) + ";");
-                                }
-                            }));
-            out.println("}");
+            printHeader(out);
+            printClusters(out, common);
+            printEdges(out, common);
+            printFooter(out);
         } catch (IOException e) {
             throw new RuntimeException("can'r write " + DEPENDENCIES_DOT, e);
         }
     }
 
-    private Path findCommon(Set<String> strings) {
+    private void printHeader(PrintWriter out) {
+        out.println("strict digraph {");
+        out.println("    node [shape=box];");
+        out.println();
+    }
+
+    private void printClusters(PrintWriter out, Path common) {
+        AtomicBoolean oneMore = new AtomicBoolean(false);
+        allRoots(common)
+                .forEach(pkg -> {
+                    List<Path> nodes = allNodes(common)
+                            .filter(node -> node.startsWith(common.resolve(pkg)))
+                            .collect(toList());
+                    if (nodes.size() == 0) {
+                        oneMore.set(true);
+                        out.println("    " + toId(common) + " [label=\"" + common.getFileName() + "\"];");
+                    } else if (nodes.size() == 1 && nodes.get(0).equals(common.resolve(pkg))) {
+                        if (!nodes.get(0).equals(pkg)) {
+                            oneMore.set(true);
+                            out.println("    " + toId(nodes.get(0)) + " [label=\"" + pkg + "\"];");
+                        }
+                    } else {
+                        oneMore.set(true);
+                        out.println("    subgraph cluster_" + toId(pkg) + " {");
+                        out.println("        graph [label=\"" + pkg.getFileName() + "\"];");
+                        nodes.forEach(node ->
+                                out.println("        " + toId(node) + " [label=\"" + node.getFileName() + "\"];")
+                        );
+                        out.println("    }");
+                    }
+                });
+        if (oneMore.get())
+            out.println();
+    }
+
+    private Stream<Path> allRoots(Path common) {
+        return packageDependencies
+                .keySet().stream()
+                .map(AbstractPackageDependenciesTest::toPath)
+                .map(path -> shorten(common, path))
+                .map(AbstractPackageDependenciesTest::getRoot)
+                .distinct();
+    }
+
+    protected Stream<Path> allNodes(Path common) {
+        Set<String> all = new HashSet<>();
+        all.addAll(packageDependencies.keySet());
+        packageDependencies.values().forEach(all::addAll);
+        return all.stream().map(AbstractPackageDependenciesTest::toPath);
+    }
+
+    private void printEdges(PrintWriter out, Path common) {
+        packageDependencies
+                .keySet()
+                .forEach(source -> packageDependencies
+                        .get(source)
+                        .forEach(target -> {
+                            if (packageDependencies.keySet().contains(target))
+                                out.println(""
+                                        + "    " + toId(toPath(source))
+                                        + " -> " + toId(toPath(target)) + ";");
+                        }));
+    }
+
+    private void printFooter(PrintWriter out) { out.println("}"); }
+
+
+    private static Path findCommon(Set<String> strings) {
         Path result = Paths.get("");
         if (strings.iterator().hasNext()) {
             Path first = toPath(strings.iterator().next());
@@ -174,14 +234,15 @@ public abstract class AbstractPackageDependenciesTest {
         return result;
     }
 
-    private String shorten(Path common, Path path) {
-        return toId(
-                common.getNameCount() == 0 || common.equals(path) || !path.startsWith(common)
-                        ? path
-                        : path.subpath(common.getNameCount(), path.getNameCount()));
+    private static Path shorten(Path common, Path path) {
+        return common.getNameCount() == 0 || common.equals(path) || !path.startsWith(common)
+                ? path
+                : path.subpath(common.getNameCount(), path.getNameCount());
     }
 
-    private Path toPath(String text) { return Paths.get("", text.split("\\.")); }
+    private static Path getRoot(Path path) { return path.getName(0); }
 
-    private String toId(Path path) { return path.toString().replace('/', '_'); }
+    private static Path toPath(String text) { return Paths.get("", text.split("\\.")); }
+
+    private static String toId(Path path) { return path.toString().replace('/', '_'); }
 }
