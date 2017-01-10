@@ -118,7 +118,7 @@
             <version>2.2.4</version>
         </dependency>
 
-        <!-- optional -->
+        <!-- only required when clients run tests => optional -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -133,7 +133,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.t1</groupId>
-            <artifactId>make</artifactId>
+            <artifactId>xml</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
