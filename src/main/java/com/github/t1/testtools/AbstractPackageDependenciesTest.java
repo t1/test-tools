@@ -150,8 +150,8 @@ public abstract class AbstractPackageDependenciesTest {
                             .get(source)
                             .forEach(target -> {
                                 if (packageDependencies.keySet().contains(target)) {
-                                    out.println("    \"" + shorten(common, toPath(source))
-                                            + "\" -> \"" + shorten(common, toPath(target)) + "\";");
+                                    out.println("    " + shorten(common, toPath(source))
+                                            + " -> " + shorten(common, toPath(target)) + ";");
                                 }
                             }));
             out.println("}");
@@ -174,11 +174,14 @@ public abstract class AbstractPackageDependenciesTest {
         return result;
     }
 
+    private String shorten(Path common, Path path) {
+        return toId(
+                common.getNameCount() == 0 || common.equals(path) || !path.startsWith(common)
+                        ? path
+                        : path.subpath(common.getNameCount(), path.getNameCount()));
+    }
+
     private Path toPath(String text) { return Paths.get("", text.split("\\.")); }
 
-    private Path shorten(Path common, Path path) {
-        if (common.getNameCount()==0 || common.equals(path) || !path.startsWith(common))
-            return path;
-        return path.subpath(common.getNameCount(), path.getNameCount());
-    }
+    private String toId(Path path) { return path.toString().replace('/', '_'); }
 }

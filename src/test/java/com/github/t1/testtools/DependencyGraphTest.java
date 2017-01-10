@@ -54,8 +54,8 @@ public class DependencyGraphTest {
                 + "strict digraph {\n"
                 + "    node [shape=box];\n"
                 + "\n"
-                + "    \"a\" -> \"b\";\n"
-                + "    \"a\" -> \"c\";\n"
+                + "    a -> b;\n"
+                + "    a -> c;\n"
                 + "}\n");
     }
 
@@ -71,8 +71,25 @@ public class DependencyGraphTest {
                 + "strict digraph {\n"
                 + "    node [shape=box];\n"
                 + "\n"
-                + "    \"a\" -> \"b\";\n"
-                + "    \"a\" -> \"c\";\n"
+                + "    a -> b;\n"
+                + "    a -> c;\n"
+                + "}\n");
+    }
+
+    @Test
+    public void shouldProduceGraphWithSuffixMatchingPackage() throws Exception {
+        givenDependency("p.q.a").on("p.q.b", "p.qx.c");
+        givenDependency("p.q.b").on("");
+        givenDependency("p.qx.c").on("d");
+
+        test.shouldProduceDotFile();
+
+        assertThat(out()).isEqualTo(""
+                + "strict digraph {\n"
+                + "    node [shape=box];\n"
+                + "\n"
+                + "    q_a -> q_b;\n"
+                + "    q_a -> qx_c;\n"
                 + "}\n");
     }
 
@@ -88,8 +105,8 @@ public class DependencyGraphTest {
                 + "strict digraph {\n"
                 + "    node [shape=box];\n"
                 + "\n"
-                + "    \"p\" -> \"a\";\n"
-                + "    \"p\" -> \"b\";\n"
+                + "    p -> a;\n"
+                + "    p -> b;\n"
                 + "}\n");
     }
 }
