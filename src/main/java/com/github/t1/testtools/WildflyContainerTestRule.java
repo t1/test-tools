@@ -52,7 +52,7 @@ public class WildflyContainerTestRule extends ExternalResource {
 
         this.xml = Xml.load(configFile().toUri());
         this.logging = xml.getXPathElement("/server/profile/subsystem[1]");
-        logging.getXPathElement("console-handler/level").setAttribute("name", "DEBUG");
+        logging.getXPathElement("console-handler/level").setAttribute("name", "ALL");
     }
 
 
@@ -62,7 +62,7 @@ public class WildflyContainerTestRule extends ExternalResource {
 
     public Path configDir() { return home().resolve("standalone/configuration"); }
 
-    public Path configFile() { return configDir().resolve("standalone.xml"); }
+    public Path configFile() { return configDir().resolve("standalone-full.xml"); }
 
     public URI baseUri() { return baseUri; }
 

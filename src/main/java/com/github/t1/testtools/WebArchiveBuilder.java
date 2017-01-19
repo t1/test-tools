@@ -113,4 +113,9 @@ public class WebArchiveBuilder {
     }
 
     public WebArchive build() { return webArchive; }
+
+    public WebArchiveBuilder withBeansXml() {
+        webArchive.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
+        return this;
+    }
 }
