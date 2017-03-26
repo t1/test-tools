@@ -84,7 +84,7 @@ public class WildflyContainerTestRule extends ExternalResource {
 
 
     @SneakyThrows(IOException.class)
-    @Override protected void before() throws Throwable {
+    @Override public void before() throws Throwable {
         xml.save();
         log.info(LINE + " start container in {}", home());
         containerProcess = new ProcessBuilder(home().resolve("bin/standalone.sh").toString())
@@ -97,7 +97,7 @@ public class WildflyContainerTestRule extends ExternalResource {
         log.info("container started");
     }
 
-    @Override protected void after() {
+    @Override public void after() {
         log.info(LINE + " shutdown");
         try {
             execute(Operations.createOperation("shutdown", new ModelNode().setEmptyList()));
