@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.t1</groupId>
     <artifactId>test-tools</artifactId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
 
     <name>Test Tools</name>
     <description>Test utilities, e.g. to check dependencies between java packages, a memento rule, et.al.</description>
@@ -12,6 +13,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <wildfly.swarm.version>2017.5.0</wildfly.swarm.version>
     </properties>
 
     <scm>
@@ -32,9 +35,6 @@
             <url>https://api.bintray.com/maven/t1/javaee-helpers/test-tools/;publish=1</url>
         </repository>
     </distributionManagement>
-    <prerequisites>
-        <maven>3.3.9</maven>
-    </prerequisites>
 
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>com.github.t1</groupId>
             <artifactId>xml</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.5</version>
             <optional>true</optional><!-- only required when using the WildflyContainerTestRule -->
         </dependency>
         <dependency>
@@ -151,6 +151,12 @@
             <artifactId>wildfly-controller-client</artifactId>
             <version>2.2.0.Final</version>
             <optional>true</optional><!-- only required when using the WildflyContainerTestRule -->
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.swarm</groupId>
+            <artifactId>ejb</artifactId>
+            <version>${wildfly.swarm.version}</version>
+            <optional>true</optional><!-- only required when using the WildflySwarmTestRule -->
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -161,8 +167,14 @@
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-testing</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.0</version>
             <optional>true</optional><!-- only required when using the FactoryInstance -->
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <version>2.2.6</version>
+            <optional>true</optional><!-- only required when using the WebArchiveBuilder -->
         </dependency>
     </dependencies>
 </project>
