@@ -176,5 +176,17 @@
             <version>2.2.6</version>
             <optional>true</optional><!-- only required when using the WebArchiveBuilder -->
         </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-server</artifactId>
+            <version>3.3.1</version>
+            <optional>true</optional><!-- only required when using the WebDriverRule -->
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 </project>

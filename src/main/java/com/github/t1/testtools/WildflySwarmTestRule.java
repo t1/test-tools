@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.rules.ExternalResource;
 import org.wildfly.swarm.Swarm;
+import org.wildfly.swarm.spi.api.Fraction;
 
 import java.net.URI;
 
@@ -21,7 +22,14 @@ public class WildflySwarmTestRule extends ExternalResource {
         return this;
     }
 
+    public WildflySwarmTestRule withFraction(Fraction<?> fraction) {
+        swarm.fraction(fraction);
+        return this;
+    }
+
+
     @SneakyThrows public void deploy(WebArchive archive) { swarm.deploy(archive); }
+
 
     public URI baseUri() {
         return URI.create("http://" + bindAddress() + ":" + port());
