@@ -24,14 +24,20 @@ import static org.glassfish.jersey.logging.LoggingFeature.Verbosity.*;
 
 @Slf4j
 public abstract class AbstractPage<P extends AbstractPage> {
-    public static final String USER_NAME = "Alice";
-
     private static final java.util.logging.Logger LOGGER =
             java.util.logging.Logger.getLogger(AbstractPage.class.getPackage().getName());
     private static final LoggingFeature LOGGING = new LoggingFeature(LOGGER, FINE, PAYLOAD_TEXT, null);
     private static final Client CLIENT = ClientBuilder.newClient().register(LOGGING);
 
     private static final Pattern STATUS_OK = Pattern.compile("\\{.*\"status\":\"ok\".*}");
+
+    public static Condition<WebElement> tagName(String expected) {
+        return new Condition<>(element -> element.getTagName().equals(expected), "tag name '%s'", expected);
+    }
+
+    public static Condition<WebElement> attr(String name, String expected) {
+        return new Condition<>(element -> element.getAttribute(name).equals(expected), "%s=\"%s\"", name, expected);
+    }
 
     public static Condition<WebElement> text(String expected) {
         return new Condition<>(element -> element.getText().equals(expected), "text body [%s]", expected);
@@ -134,9 +140,11 @@ public abstract class AbstractPage<P extends AbstractPage> {
 
         public A hasTitle(String expected) {
             assertThat(driver.getTitle())
-                    .describedAs("title in:\n---------\n%s\n---------", getPageSource())
+                    .describedAs(description("title"))
                     .isEqualTo(expected);
             return self;
         }
     }
+
+    public String description(String what) { return what + " in:\n---------\n" + getPageSource() + "\n---------"; }
 }
