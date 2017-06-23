@@ -13,9 +13,11 @@ import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import java.io.*;
 import java.net.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.*;
+import static java.util.Arrays.*;
 import static java.util.logging.Level.*;
 import static javax.ws.rs.core.MediaType.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -37,6 +39,26 @@ public abstract class AbstractPage<P extends AbstractPage> {
 
     public static Condition<WebElement> attr(String name, String expected) {
         return new Condition<>(element -> element.getAttribute(name).equals(expected), "%s=\"%s\"", name, expected);
+    }
+
+    public static Condition<WebElement> displayed() {
+        return new Condition<>(WebElement::isDisplayed, "displayed");
+    }
+
+    public static Condition<WebElement> selected() {
+        return new Condition<>(WebElement::isSelected, "selected");
+    }
+
+    public static Condition<WebElement> value(String value) {
+        return new Condition<>(e -> e.getAttribute("value").equals(value), "value '%s'", value);
+    }
+
+    public static Condition<WebElement> cssClass(String value) {
+        return new Condition<>(e -> getCssClasses(e).contains(value), "css class '%s'", value);
+    }
+
+    private static List<String> getCssClasses(WebElement e) {
+        return asList(e.getAttribute("class").split(" "));
     }
 
     public static Condition<WebElement> text(String expected) {
