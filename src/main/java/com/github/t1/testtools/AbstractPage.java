@@ -53,8 +53,8 @@ public abstract class AbstractPage<P extends AbstractPage> {
         return new Condition<>(e -> e.getAttribute("value").equals(value), "value '%s'", value);
     }
 
-    public static Condition<WebElement> cssClass(String value) {
-        return new Condition<>(e -> getCssClasses(e).contains(value), "css class '%s'", value);
+    public static Condition<WebElement> cssClass(String... values) {
+        return new Condition<>(e -> getCssClasses(e).containsAll(asList(values)), "css class '%s'", values);
     }
 
     private static List<String> getCssClasses(WebElement e) {
