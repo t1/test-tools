@@ -17,8 +17,8 @@ public class WildflySwarmTestRule extends ExternalResource {
 
     @Override @SneakyThrows protected void after() { swarm.stop(); }
 
-    public WildflySwarmTestRule withProperty(String name, String value) {
-        swarm.withProperty(name, value);
+    public WildflySwarmTestRule withProperty(String name, Object value) {
+        swarm.withProperty(name, (value == null) ? null : value.toString());
         return this;
     }
 

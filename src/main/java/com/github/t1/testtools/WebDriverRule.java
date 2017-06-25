@@ -11,8 +11,18 @@ import java.net.*;
 
 @Slf4j
 public class WebDriverRule extends ExternalResource {
-    @Delegate public final WebDriver driver = new HtmlUnitDriver();
-    @Delegate private final WebDriver.Options manage = driver.manage();
+    @Delegate public final WebDriver driver;
+    @Delegate private final WebDriver.Options manage;
+
+    public WebDriverRule() { this(new HtmlUnitDriver(true)); }
+
+    public WebDriverRule(WebDriver driver) {
+        this.driver = driver;
+        this.manage = driver.manage();
+    }
+
+    @Override protected void after() { driver.close(); }
+
 
     @SneakyThrows(MalformedURLException.class) public void navigateTo(URI uri) { driver.navigate().to(uri.toURL()); }
 
