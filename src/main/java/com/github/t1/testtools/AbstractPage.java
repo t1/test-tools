@@ -41,29 +41,26 @@ public abstract class AbstractPage<P extends AbstractPage> {
         return new Condition<>(element -> element.getAttribute(name).equals(expected), "%s=\"%s\"", name, expected);
     }
 
-    public static Condition<WebElement> displayed() {
-        return new Condition<>(WebElement::isDisplayed, "displayed");
-    }
+    public static final Condition<WebElement> displayed = new Condition<>(WebElement::isDisplayed, "displayed");
 
-    public static Condition<WebElement> selected() {
-        return new Condition<>(WebElement::isSelected, "selected");
-    }
+    public static final Condition<WebElement> selected = new Condition<>(WebElement::isSelected, "selected");
 
     public static Condition<WebElement> value(String value) {
         return new Condition<>(e -> e.getAttribute("value").equals(value), "value '%s'", value);
     }
 
     public static Condition<WebElement> cssClass(String... values) {
-        return new Condition<>(e -> getCssClasses(e).containsAll(asList(values)), "css class '%s'", values);
+        return new Condition<>(e -> getCssClasses(e).containsAll(asList(values)), "css classes %s", asList(values));
     }
 
-    private static List<String> getCssClasses(WebElement e) {
+    public static List<String> getCssClasses(WebElement e) {
         return asList(e.getAttribute("class").split(" "));
     }
 
     public static Condition<WebElement> text(String expected) {
         return new Condition<>(element -> element.getText().equals(expected), "text body [%s]", expected);
     }
+
 
     @SneakyThrows(UnsupportedEncodingException.class)
     public static String urlEncode(URI uri) { return URLEncoder.encode(uri.toString(), UTF_8.name()); }
