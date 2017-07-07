@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.rules.ExternalResource;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.interactions.Actions;
 
 import java.net.*;
 
@@ -27,4 +28,6 @@ public class WebDriverRule extends ExternalResource {
     @SneakyThrows(MalformedURLException.class) public void navigateTo(URI uri) { driver.navigate().to(uri.toURL()); }
 
     public URI currentUri() { return URI.create(driver.getCurrentUrl()); }
+
+    public Actions buildAction() { return new Actions(driver); }
 }
