@@ -13,7 +13,7 @@ import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import java.io.*;
 import java.net.*;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.*;
@@ -59,6 +59,10 @@ public abstract class AbstractPage<P extends AbstractPage> {
 
     public static Condition<WebElement> text(String expected) {
         return new Condition<>(element -> element.getText().equals(expected), "text body [%s]", expected);
+    }
+
+    public static <T> Condition<T> isNull() {
+        return new Condition<>(Objects::isNull, "is null");
     }
 
 

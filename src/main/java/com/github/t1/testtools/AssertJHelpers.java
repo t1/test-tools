@@ -4,15 +4,18 @@ import lombok.experimental.UtilityClass;
 import org.assertj.core.api.Condition;
 import org.assertj.core.description.Description;
 
+import java.util.ArrayList;
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Stream;
 
+import static java.util.Arrays.*;
 import static java.util.stream.Collectors.*;
 
 @UtilityClass
 public class AssertJHelpers {
-    @SafeVarargs public static <T> Condition<T> xAllOf(Condition<T>... conditions) {
+    @SafeVarargs public static <T> Condition<T> xAllOf(Condition<T>... array) { return xAllOf(asList(array)); }
+
+    public static <T> Condition<T> xAllOf(List<Condition<T>> conditions) {
         List<Condition<T>> failing = new ArrayList<>();
         return new Condition<T>(t -> {
             failing.clear();
@@ -21,8 +24,8 @@ public class AssertJHelpers {
                     failing.add(condition);
             return failing.isEmpty();
         }, "dummy")
-                .as(description(() -> "all of:\n - " + Stream
-                        .of(conditions)
+                .as(description(() -> "all of:\n - " + conditions
+                        .stream()
                         .map(condition -> condition.description() + (failing.contains(condition) ? " <failed>" : ""))
                         .collect(joining("\n - "))));
     }
