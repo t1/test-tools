@@ -1,7 +1,10 @@
 package com.github.t1.testtools;
 
+import lombok.Getter;
+
 import javax.enterprise.inject.Instance;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.*;
 
 import static java.util.Arrays.*;
@@ -19,17 +22,18 @@ import static java.util.Arrays.*;
  * </pre>
  */
 public class MockInstance<T> implements Instance<T> {
-    private final List<T> items;
+    private final List<T> instances;
+    @Getter private final List<T> destroyedInstances = new ArrayList<>();
 
-    @SafeVarargs public MockInstance(T... items) { this.items = asList(items); }
+    @SafeVarargs public MockInstance(T... instances) { this.instances = asList(instances); }
 
     @Override
-    public Iterator<T> iterator() { return items.iterator(); }
+    public Iterator<T> iterator() { return instances.iterator(); }
 
     @Override
     public T get() {
-        assert items.size() == 1;
-        return items.get(0);
+        assert instances.size() == 1;
+        return instances.get(0);
     }
 
     @Override
@@ -52,5 +56,11 @@ public class MockInstance<T> implements Instance<T> {
     public boolean isAmbiguous() { return false; }
 
     @Override
-    public void destroy(T instance) {}
+    public void destroy(T instance) {
+        if (!instances.contains(instance))
+            throw new IllegalArgumentException("destroying unknown instance: " + instance);
+        if (destroyedInstances.contains(instance))
+            throw new IllegalArgumentException("destroying already destroyed instance: " + instance);
+        destroyedInstances.add(instance);
+    }
 }
