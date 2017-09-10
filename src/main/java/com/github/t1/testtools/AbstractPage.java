@@ -6,6 +6,7 @@ import org.assertj.core.api.Condition;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.json.*;
 import javax.ws.rs.ServerErrorException;
@@ -135,6 +136,10 @@ public abstract class AbstractPage<P extends AbstractPage> {
     }
 
     public boolean isOpen() { return pageUri().equals(uri); }
+
+    public WebDriverWait webDriverWait() {
+        return new WebDriverWait(driver.driver, 30, 250);
+    }
 
     public void assertHealthy() {
         WebTarget target = CLIENT.target(uri).path("/health");
