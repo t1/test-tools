@@ -1,6 +1,6 @@
 package com.github.t1.testtools;
 
-import com.github.t1.graph.*;
+import com.github.t1.graph.Graph;
 import com.github.t1.graph.Node;
 import com.sun.tools.classfile.*;
 import com.sun.tools.classfile.Dependency.*;
