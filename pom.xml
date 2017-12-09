@@ -15,7 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <com.github.t1.profile-t1.version>1.0.0-SNAPSHOT</com.github.t1.profile-t1.version>
-        <wildfly.swarm.version>2017.10.1</wildfly.swarm.version>
+        <wildfly.swarm.version>2017.11.0</wildfly.swarm.version>
     </properties>
 
     <scm>
@@ -126,12 +126,12 @@
         <dependency>
             <groupId>org.jboss.shrinkwrap.resolver</groupId>
             <artifactId>shrinkwrap-resolver-api-maven</artifactId>
-            <version>2.2.6</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>23.3-jre</version>
+            <version>23.5-jre</version>
         </dependency>
 
         <!-- only required when clients run tests => optional -->
@@ -174,19 +174,19 @@
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-testing</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.2</version>
             <optional>true</optional><!-- only required when using the FactoryInstance -->
         </dependency>
         <dependency>
             <groupId>org.jboss.shrinkwrap.resolver</groupId>
             <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
-            <version>2.2.6</version>
+            <version>3.0.1</version>
             <optional>true</optional><!-- only required when using the WebArchiveBuilder -->
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-server</artifactId>
-            <version>3.6.0</version>
+            <version>3.8.1</version>
             <optional>true</optional><!-- only required when using the WebDriverRule -->
             <exclusions>
                 <exclusion>
@@ -198,7 +198,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.11.0</version>
+            <version>2.13.0</version>
             <optional>true</optional><!-- only required when using WebTargetMockBuilder -->
         </dependency>
     </dependencies>
