@@ -6,7 +6,7 @@
             <id>bintray</id>
             <repositories>
                 <repository>
-                    <id>bintray</id>
+                    <id>central</id>
                     <name>bintray</name>
                     <url>http://jcenter.bintray.com</url>
                     <snapshots>
