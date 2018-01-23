@@ -35,7 +35,7 @@ public class SystemPropertiesRule extends ExternalResource {
     }
 
     public SystemPropertiesRule given(String name, Object value) {
-        return memoize(name, setSystemProperty(name, value.toString()));
+        return memoize(name, setSystemProperty(name, (value == null) ? null : value.toString()));
     }
 
     @Override
