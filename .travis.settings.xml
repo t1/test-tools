@@ -8,9 +8,9 @@
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
-                    <id>central</id>
+                    <id>bintray-t1-javaee-helpers</id>
                     <name>bintray</name>
-                    <url>http://jcenter.bintray.com</url>
+                    <url>https://dl.bintray.com/t1/javaee-helpers</url>
                 </repository>
             </repositories>
             <pluginRepositories>
@@ -18,9 +18,9 @@
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
-                    <id>central</id>
+                    <id>bintray-t1-javaee-helpers</id>
                     <name>bintray-plugins</name>
-                    <url>http://jcenter.bintray.com</url>
+                    <url>https://dl.bintray.com/t1/javaee-helpers</url>
                 </pluginRepository>
             </pluginRepositories>
             <id>bintray</id>
