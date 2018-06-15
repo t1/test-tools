@@ -5,7 +5,8 @@ import com.github.t1.graph.Node;
 import com.sun.tools.classfile.*;
 import com.sun.tools.classfile.Dependency.*;
 import com.sun.tools.jdeps.*;
-import org.junit.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.nio.file.*;
@@ -16,15 +17,14 @@ import java.util.stream.*;
 
 import static java.util.Arrays.*;
 import static java.util.stream.Collectors.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractPackageDependenciesTest {
-    public static final Path DEPENDENCIES_DOT = Paths.get("target/dependencies.dot");
+    static final Path DEPENDENCIES_DOT = Paths.get("target/dependencies.dot");
 
     static final Map<String, Set<String>> packageDependencies = new TreeMap<>();
 
-    @BeforeClass
-    public static void findDependencies() throws Exception {
+    @BeforeAll static void findDependencies() throws Exception {
         Path path = Paths.get("target/classes");
         Archive archive = new Archive(path, ClassFileReader.newInstance(path)) {};
         Finder finder = Dependencies.getClassDependencyFinder();
@@ -65,8 +65,7 @@ public abstract class AbstractPackageDependenciesTest {
         return result;
     }
 
-    @Test
-    public void shouldHaveNoCycles() {
+    @Test void shouldHaveNoCycles() {
         Graph<String> graph = new Graph<>();
         packageDependencies.forEach((key, set) -> {
             Node<String> node = graph.findOrCreateNode(key);
@@ -82,8 +81,7 @@ public abstract class AbstractPackageDependenciesTest {
         System.out.println("-----------------------");
     }
 
-    @Test
-    public void shouldHaveOnlyDefinedDependencies() {
+    @Test void shouldHaveOnlyDefinedDependencies() {
         List<String> unexpected = new ArrayList<>();
         packageDependencies
                 .keySet().stream()
@@ -113,8 +111,7 @@ public abstract class AbstractPackageDependenciesTest {
                 });
     }
 
-    @Test
-    public void shouldHaveNoSpecifiedButUnrealizedDependencies() {
+    @Test void shouldHaveNoSpecifiedButUnrealizedDependencies() {
         List<String> unrealized = new ArrayList<>();
         packageDependencies
                 .keySet().stream()
@@ -140,13 +137,12 @@ public abstract class AbstractPackageDependenciesTest {
      * which contains the <code>dot</code> program. Then you can call, e.g.:
      * <code>dot target/dependencies.dot -Tpng -o target/dependencies.png</code>
      */
-    @Test
-    public void shouldProduceDotFile() {
+    @Test void shouldProduceDotFile() {
         Path common = findCommon(packageDependencies.keySet());
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(DEPENDENCIES_DOT))) {
             printHeader(out);
             printClusters(out, common);
-            printEdges(out, common);
+            printEdges(out);
             printFooter(out);
         } catch (IOException e) {
             throw new RuntimeException("can'r write " + DEPENDENCIES_DOT, e);
@@ -163,7 +159,7 @@ public abstract class AbstractPackageDependenciesTest {
         AtomicBoolean oneMore = new AtomicBoolean(false);
         allRoots(common)
                 .forEach(pkg -> {
-                    List<Path> nodes = allNodes(common)
+                    List<Path> nodes = allNodes()
                             .filter(node -> node.startsWith(common.resolve(pkg)))
                             .collect(toList());
                     if (nodes.size() == 0) {
@@ -197,14 +193,13 @@ public abstract class AbstractPackageDependenciesTest {
                 .distinct();
     }
 
-    protected Stream<Path> allNodes(Path common) {
-        Set<String> all = new HashSet<>();
-        all.addAll(packageDependencies.keySet());
+    private Stream<Path> allNodes() {
+        Set<String> all = new HashSet<>(packageDependencies.keySet());
         packageDependencies.values().forEach(all::addAll);
         return all.stream().map(AbstractPackageDependenciesTest::toPath);
     }
 
-    private void printEdges(PrintWriter out, Path common) {
+    private void printEdges(PrintWriter out) {
         packageDependencies
                 .keySet()
                 .forEach(source -> packageDependencies
