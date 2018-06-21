@@ -2,41 +2,60 @@ package com.github.t1.testtools;
 
 import com.github.t1.graph.Graph;
 import com.github.t1.graph.Node;
-import com.sun.tools.classfile.*;
-import com.sun.tools.classfile.Dependency.*;
-import com.sun.tools.jdeps.*;
-import org.junit.*;
+import com.sun.tools.classfile.Dependencies;
+import com.sun.tools.classfile.Dependency;
+import com.sun.tools.classfile.Dependency.Finder;
+import com.sun.tools.classfile.Dependency.Location;
+import com.sun.tools.jdeps.Archive;
+import com.sun.tools.jdeps.ClassFileReader;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static java.util.Arrays.*;
-import static java.util.stream.Collectors.*;
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.fail;
 
 public abstract class AbstractPackageDependenciesTest {
-    public static final Path DEPENDENCIES_DOT = Paths.get("target/dependencies.dot");
+    private static final boolean IS_MAVEN = isMaven();
+
+    private static boolean isMaven() {
+        return Files.exists(Paths.get("pom.xml"));
+    }
+
+    public static final Path DEPENDENCIES_DOT = Paths.get(IS_MAVEN ? "target" : "out").resolve("dependencies.dot");
 
     static final Map<String, Set<String>> packageDependencies = new TreeMap<>();
 
     @BeforeClass
     public static void findDependencies() throws Exception {
-        Path path = Paths.get("target/classes");
+        Path path = Paths.get(IS_MAVEN ? "target" : "out/production").resolve("classes");
         Archive archive = new Archive(path, ClassFileReader.newInstance(path)) {};
         Finder finder = Dependencies.getClassDependencyFinder();
 
         archive.reader().getClassFiles()
-               .forEach(classFile -> StreamSupport
-                       .stream(finder.findDependencies(classFile).spliterator(), false)
-                       .filter(dependency -> !isAnnotation(dependency))
-                       .filter(dependency -> !self(dependency))
-                       .forEach(dependency -> packageDependencies
-                               .computeIfAbsent(dependency.getOrigin().getPackageName(), key -> new TreeSet<>())
-                               .add(dependency.getTarget().getPackageName())));
+                .forEach(classFile -> StreamSupport
+                        .stream(finder.findDependencies(classFile).spliterator(), false)
+                        .filter(dependency -> !isAnnotation(dependency))
+                        .filter(dependency -> !self(dependency))
+                        .forEach(dependency -> packageDependencies
+                                .computeIfAbsent(dependency.getOrigin().getPackageName(), key -> new TreeSet<>())
+                                .add(dependency.getTarget().getPackageName())));
     }
 
     private static boolean self(Dependency dependency) {
@@ -71,8 +90,8 @@ public abstract class AbstractPackageDependenciesTest {
         packageDependencies.forEach((key, set) -> {
             Node<String> node = graph.findOrCreateNode(key);
             set.stream()
-               .filter(packageDependencies::containsKey)
-               .forEach(target -> node.linkedTo(graph.findOrCreateNode(target)));
+                    .filter(packageDependencies::containsKey)
+                    .forEach(target -> node.linkedTo(graph.findOrCreateNode(target)));
         });
 
         graph.topologicalSort();
@@ -99,7 +118,7 @@ public abstract class AbstractPackageDependenciesTest {
                             .forEach(target -> unexpected.add(source + " -> " + target));
                 });
         if (!unexpected.isEmpty())
-            fail("unexpected dependencies:\n" + String.join("\n", unexpected));
+            fail(unexpected.size() + " unexpected dependencies:\n" + String.join("\n", unexpected));
     }
 
     private boolean isAlwaysAllowed(String target) {
@@ -135,7 +154,7 @@ public abstract class AbstractPackageDependenciesTest {
      * Produces a file <code>target/dependencies.dot</code> with a directed graph of the inner dependencies,
      * i.e. the dependencies between the packages that have outgoing edges; external dependencies (on libraries, etc.)
      * are omitted.
-     *
+     * <p>
      * To produce a PNG file, you'll need, e.g., the <code>graphviz</code> package,
      * which contains the <code>dot</code> program. Then you can call, e.g.:
      * <code>dot target/dependencies.dot -Tpng -o target/dependencies.png</code>
