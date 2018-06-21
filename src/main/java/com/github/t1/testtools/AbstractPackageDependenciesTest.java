@@ -38,7 +38,7 @@ public abstract class AbstractPackageDependenciesTest {
         return Files.exists(Paths.get("pom.xml"));
     }
 
-    public static final Path DEPENDENCIES_DOT = Paths.get(IS_MAVEN ? "target" : "out").resolve("dependencies.dot");
+    static final Path DEPENDENCIES_DOT = Paths.get(IS_MAVEN ? "target" : "out").resolve("dependencies.dot");
 
     static final Map<String, Set<String>> packageDependencies = new TreeMap<>();
 
@@ -73,7 +73,7 @@ public abstract class AbstractPackageDependenciesTest {
     }
 
     protected List<String> getAlwaysAllowedPackages() {
-        return asList("java.*", "javax.*", "lombok", "org.slf4j", "com.github.t1.log", "com.github.t1.config");
+        return asList("java.*", "javax.*", "lombok", "org.slf4j");
     }
 
     private List<String> dependenciesOf(Package source) {
@@ -165,7 +165,7 @@ public abstract class AbstractPackageDependenciesTest {
         try (PrintWriter out = new PrintWriter(Files.newBufferedWriter(DEPENDENCIES_DOT))) {
             printHeader(out);
             printClusters(out, common);
-            printEdges(out, common);
+            printEdges(out);
             printFooter(out);
         } catch (IOException e) {
             throw new RuntimeException("can'r write " + DEPENDENCIES_DOT, e);
@@ -182,7 +182,7 @@ public abstract class AbstractPackageDependenciesTest {
         AtomicBoolean oneMore = new AtomicBoolean(false);
         allRoots(common)
                 .forEach(pkg -> {
-                    List<Path> nodes = allNodes(common)
+                    List<Path> nodes = allNodes()
                             .filter(node -> node.startsWith(common.resolve(pkg)))
                             .collect(toList());
                     if (nodes.size() == 0) {
@@ -216,14 +216,13 @@ public abstract class AbstractPackageDependenciesTest {
                 .distinct();
     }
 
-    protected Stream<Path> allNodes(Path common) {
-        Set<String> all = new HashSet<>();
-        all.addAll(packageDependencies.keySet());
+    private Stream<Path> allNodes() {
+        Set<String> all = new HashSet<>(packageDependencies.keySet());
         packageDependencies.values().forEach(all::addAll);
         return all.stream().map(AbstractPackageDependenciesTest::toPath);
     }
 
-    private void printEdges(PrintWriter out, Path common) {
+    private void printEdges(PrintWriter out) {
         packageDependencies
                 .keySet()
                 .forEach(source -> packageDependencies
