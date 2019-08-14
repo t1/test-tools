@@ -2,21 +2,33 @@ package com.github.t1.testtools;
 
 import com.github.t1.graph.Graph;
 import com.github.t1.graph.Node;
-import com.sun.tools.classfile.*;
-import com.sun.tools.classfile.Dependency.*;
-import com.sun.tools.jdeps.*;
+import com.sun.tools.classfile.Dependencies;
+import com.sun.tools.classfile.Dependency;
+import com.sun.tools.classfile.Dependency.Finder;
+import com.sun.tools.classfile.Dependency.Location;
+import com.sun.tools.jdeps.Archive;
+import com.sun.tools.jdeps.ClassFileReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static java.util.Arrays.*;
-import static java.util.stream.Collectors.*;
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractPackageDependenciesTest {
@@ -53,6 +65,7 @@ public abstract class AbstractPackageDependenciesTest {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected List<String> getAlwaysAllowedPackages() {
         return asList("java.*", "javax.*", "lombok", "org.slf4j", "com.github.t1.log", "com.github.t1.config");
     }
@@ -205,7 +218,7 @@ public abstract class AbstractPackageDependenciesTest {
                 .forEach(source -> packageDependencies
                         .get(source)
                         .forEach(target -> {
-                            if (packageDependencies.keySet().contains(target))
+                            if (packageDependencies.containsKey(target))
                                 out.println(""
                                         + "    " + toId(toPath(source))
                                         + " -> " + toId(toPath(target)) + ";");
