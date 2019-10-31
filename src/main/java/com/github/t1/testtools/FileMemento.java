@@ -1,15 +1,24 @@
 package com.github.t1.testtools;
 
-import lombok.*;
-import org.junit.rules.ExternalResource;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public class FileMemento extends ExternalResource implements AutoCloseable {
+public class FileMemento implements BeforeEachCallback, AfterEachCallback, Extension, AutoCloseable {
     @SneakyThrows(IOException.class)
     public static String readFile(Path path) { return new String(Files.readAllBytes(path)); }
 
@@ -37,8 +46,7 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
         return path;
     }
 
-    @Override
-    protected void before() { setup(); }
+    @Override public void beforeEach(ExtensionContext context) { setup(); }
 
     public FileMemento setup() {
         this.existed = Files.isRegularFile(getPath());
@@ -53,9 +61,7 @@ public class FileMemento extends ExternalResource implements AutoCloseable {
 
     public void write(String contents) { writeFile(getPath(), contents); }
 
-    @Override protected void after() {
-        restore();
-    }
+    @Override public void afterEach(ExtensionContext context) { restore(); }
 
     @Override public void close() { restore(); }
 

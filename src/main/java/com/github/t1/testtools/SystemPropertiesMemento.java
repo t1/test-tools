@@ -1,12 +1,16 @@
 package com.github.t1.testtools;
 
-import org.junit.rules.ExternalResource;
-import org.slf4j.*;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SystemPropertiesRule extends ExternalResource {
-    public static Logger log = LoggerFactory.getLogger(SystemPropertiesRule.class);
+public class SystemPropertiesMemento implements AfterEachCallback, Extension {
+    public static Logger log = LoggerFactory.getLogger(SystemPropertiesMemento.class);
 
     public static String setSystemProperty(String key, String newValue) {
         String oldValue = (newValue == null) ? System.clearProperty(key) : System.setProperty(key, newValue);
@@ -17,29 +21,28 @@ public class SystemPropertiesRule extends ExternalResource {
     private final Map<String, String> oldSystemProperties = new HashMap<>();
     private Logger originalLogger;
 
-    public SystemPropertiesRule loggingTo(Logger log) {
-        this.originalLogger = SystemPropertiesRule.log;
-        SystemPropertiesRule.log = log;
+    public SystemPropertiesMemento loggingTo(Logger log) {
+        this.originalLogger = SystemPropertiesMemento.log;
+        SystemPropertiesMemento.log = log;
         return this;
     }
 
-    @Deprecated public SystemPropertiesRule given(String name) {
+    @Deprecated public SystemPropertiesMemento given(String name) {
         return memoize(name);
     }
 
-    public SystemPropertiesRule memoize(String name) { return memoize(name, System.getProperty(name)); }
+    public SystemPropertiesMemento memoize(String name) { return memoize(name, System.getProperty(name)); }
 
-    private SystemPropertiesRule memoize(String name, String value) {
+    private SystemPropertiesMemento memoize(String name, String value) {
         oldSystemProperties.put(name, value);
         return this;
     }
 
-    public SystemPropertiesRule given(String name, Object value) {
+    public SystemPropertiesMemento given(String name, Object value) {
         return memoize(name, setSystemProperty(name, (value == null) ? null : value.toString()));
     }
 
-    @Override
-    public void after() {
+    @Override public void afterEach(ExtensionContext context) {
         restoreAll();
         resetLogger();
     }
@@ -55,6 +58,6 @@ public class SystemPropertiesRule extends ExternalResource {
 
     private void resetLogger() {
         if (originalLogger != null)
-            SystemPropertiesRule.log = originalLogger;
+            SystemPropertiesMemento.log = originalLogger;
     }
 }
