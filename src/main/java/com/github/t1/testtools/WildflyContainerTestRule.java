@@ -1,33 +1,51 @@
 package com.github.t1.testtools;
 
 import com.github.t1.log.LogLevel;
-import com.github.t1.xml.*;
+import com.github.t1.xml.Xml;
+import com.github.t1.xml.XmlElement;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.as.controller.client.ModelControllerClient;
-import org.jboss.as.controller.client.helpers.*;
+import org.jboss.as.controller.client.helpers.ClientConstants;
+import org.jboss.as.controller.client.helpers.Operations;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-import static com.github.t1.testtools.FileMemento.*;
-import static java.nio.file.Files.*;
-import static java.nio.file.StandardCopyOption.*;
-import static java.time.temporal.ChronoUnit.*;
+import static com.github.t1.testtools.FileMemento.readFile;
+import static java.nio.file.Files.copy;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.move;
+import static java.nio.file.Files.setLastModifiedTime;
+import static java.nio.file.Files.setPosixFilePermissions;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Slf4j
-public class WildflyContainerTestRule extends ExternalResource {
+public class WildflyContainerTestRule implements BeforeAllCallback, AfterAllCallback, Extension {
     private static final String LINE = "\n==================================================================";
 
     @SneakyThrows(InterruptedException.class)
@@ -71,33 +89,33 @@ public class WildflyContainerTestRule extends ExternalResource {
     public WildflyContainerTestRule withLogger(String category, LogLevel level) {
         if (logging.find("logger[@category='" + category + "']").isEmpty())
             logging.addElement("logger").setAttribute("category", category)
-                   .addElement("level").setAttribute("name", level.name());
+                .addElement("level").setAttribute("name", level.name());
         return this;
     }
 
     public WildflyContainerTestRule withSystemProperty(String name, String value) {
         if (xml.find("/server/system-properties/property[@name='" + name + "']").isEmpty())
             xml.getOrCreateElement("system-properties", Xml.before("management"))
-               .addElement("property").setAttribute("name", name).setAttribute("value", value);
+                .addElement("property").setAttribute("name", name).setAttribute("value", value);
         return this;
     }
 
 
     @SneakyThrows(IOException.class)
-    @Override public void before() {
+    @Override public void beforeAll(ExtensionContext context) {
         xml.save();
         log.info(LINE + " start container in {}", home());
         containerProcess = new ProcessBuilder(home().resolve("bin/standalone.sh").toString())
-                .directory(home().toFile())
-                .redirectErrorStream(true).inheritIO()
-                .start();
+            .directory(home().toFile())
+            .redirectErrorStream(true).inheritIO()
+            .start();
         sleep(Duration.ofSeconds(1)); // give it a chance to die fast
         if (!containerProcess.isAlive())
             throw new IllegalStateException("container not started");
         log.info("container started");
     }
 
-    @Override public void after() {
+    @Override public void afterAll(ExtensionContext context) {
         log.info(LINE + " shutdown");
         try {
             execute(Operations.createOperation("shutdown", new ModelNode().setEmptyList()));
@@ -144,14 +162,14 @@ public class WildflyContainerTestRule extends ExternalResource {
             sleep(Duration.ofSeconds(1));
         }
         throw new RuntimeException(
-                "container didn't start within " + start.until(Instant.now(), MILLIS) + " ms for " + description);
+            "container didn't start within " + start.until(Instant.now(), MILLIS) + " ms for " + description);
     }
 
     public boolean isConnectException(Exception e) {
         return e.getCause() instanceof ConnectException
-                && (e.getCause().getMessage()
-                     .contains("WFLYPRT0053: Could not connect to " + cliUri + ". The connection failed")
-                            || e.getCause().getMessage().contains("Connection refused (Connection refused)"));
+            && (e.getCause().getMessage()
+            .contains("WFLYPRT0053: Could not connect to " + cliUri + ". The connection failed")
+            || e.getCause().getMessage().contains("Connection refused (Connection refused)"));
     }
 
     @SneakyThrows(IOException.class) private void install() {
@@ -162,8 +180,8 @@ public class WildflyContainerTestRule extends ExternalResource {
 
         log.info(LINE + " unpack container");
         Path zip = LOCAL_REPOSITORY
-                .resolve("org/wildfly/wildfly-dist").resolve(version)
-                .resolve("wildfly-dist-" + version + ".zip");
+            .resolve("org/wildfly/wildfly-dist").resolve(version)
+            .resolve("wildfly-dist-" + version + ".zip");
         unzip(zip, home().getParent());
         move(home().getParent().resolve("wildfly-" + version), home());
     }
@@ -172,15 +190,15 @@ public class WildflyContainerTestRule extends ExternalResource {
     @SneakyThrows(InterruptedException.class)
     private void download() throws IOException {
         int exitCode = new ProcessBuilder("mvn",
-                "dependency:get",
-                "-D" + "transitive=false",
-                "-D" + "groupId=org.wildfly",
-                "-D" + "artifactId=wildfly-dist",
-                "-D" + "packaging=zip",
-                "-D" + "version=" + version)
-                .inheritIO()
-                .start()
-                .waitFor();
+            "dependency:get",
+            "-D" + "transitive=false",
+            "-D" + "groupId=org.wildfly",
+            "-D" + "artifactId=wildfly-dist",
+            "-D" + "packaging=zip",
+            "-D" + "version=" + version)
+            .inheritIO()
+            .start()
+            .waitFor();
         if (exitCode != 0)
             throw new IllegalStateException("mvn didn't return normally but returned " + exitCode);
     }

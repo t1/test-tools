@@ -1,14 +1,17 @@
 package com.github.t1.testtools;
 
 import com.github.t1.log.LogLevel;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
-public class LoggerMemento extends ExternalResource {
+public class LoggerMemento implements AfterEachCallback, Extension {
     private interface Adapter {
         LogLevel getLogLevel(String name);
 
@@ -63,12 +66,12 @@ public class LoggerMemento extends ExternalResource {
     private static Adapter findLoggerAdapter() {
         String className = LoggerFactory.getLogger("").getClass().getName();
         switch (className) {
-        case "ch.qos.logback.classic.Logger":
-            return new LogbackAdapter();
-        case "org.slf4j.impl.Slf4jLogger": // org.jboss.slf4j:slf4j-jboss-logmanager
-            return new Slf4jLoggerAdapter();
-        default:
-            throw new IllegalStateException("no LoggerMemento adapter for logger type: '" + className + "'");
+            case "ch.qos.logback.classic.Logger":
+                return new LogbackAdapter();
+            case "org.slf4j.impl.Slf4jLogger": // org.jboss.slf4j:slf4j-jboss-logmanager
+                return new Slf4jLoggerAdapter();
+            default:
+                throw new IllegalStateException("no LoggerMemento adapter for logger type: '" + className + "'");
         }
     }
 
@@ -82,5 +85,5 @@ public class LoggerMemento extends ExternalResource {
 
     public void setLogLevel(String name, LogLevel level) { adapter.setLogLevel(name, level); }
 
-    @Override protected void after() { oldValues.forEach(this::setLogLevel); }
+    @Override public void afterEach(ExtensionContext context) { oldValues.forEach(this::setLogLevel); }
 }
