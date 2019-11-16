@@ -1,4 +1,5 @@
 language: java
 jdk:
   - openjdk8
-install: mvn install --batch-mode --show-version --settings .travis.settings.xml
+install: echo skip
+script: mvn install --batch-mode --show-version --settings .travis.settings.xml
