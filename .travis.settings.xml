@@ -3,27 +3,17 @@
           xmlns='http://maven.apache.org/SETTINGS/1.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
     <profiles>
         <profile>
+            <id>bintray</id>
             <repositories>
                 <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>central</id>
+                    <id>bintray</id>
                     <name>bintray</name>
                     <url>http://jcenter.bintray.com</url>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
-                    <id>central</id>
-                    <name>bintray-plugins</name>
-                    <url>http://jcenter.bintray.com</url>
-                </pluginRepository>
-            </pluginRepositories>
-            <id>bintray</id>
+                </repository>
+            </repositories>
         </profile>
     </profiles>
     <activeProfiles>
