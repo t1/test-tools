@@ -56,11 +56,11 @@ public class MockLogger extends Logger {
     }
 
     @Override public void log(Level level, String msg, Throwable thrown) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void log(Level level, Throwable thrown, Supplier<String> msgSupplier) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void logp(Level level, String sourceClass, String sourceMethod, String msg) {
@@ -80,11 +80,11 @@ public class MockLogger extends Logger {
     }
 
     @Override public void logp(Level level, String sourceClass, String sourceMethod, String msg, Throwable thrown) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void logp(Level level, String sourceClass, String sourceMethod, Throwable thrown, Supplier<String> msgSupplier) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @SuppressWarnings("deprecation") @Override public void logrb(Level level, String sourceClass, String sourceMethod, String bundleName, String msg) {
@@ -104,11 +104,11 @@ public class MockLogger extends Logger {
     }
 
     @SuppressWarnings("deprecation") @Override public void logrb(Level level, String sourceClass, String sourceMethod, String bundleName, String msg, Throwable thrown) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void logrb(Level level, String sourceClass, String sourceMethod, ResourceBundle bundle, String msg, Throwable thrown) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void entering(String sourceClass, String sourceMethod) {
@@ -132,7 +132,7 @@ public class MockLogger extends Logger {
     }
 
     @Override public void throwing(String sourceClass, String sourceMethod, Throwable thrown) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(thrown);
     }
 
     @Override public void severe(String msg) {
