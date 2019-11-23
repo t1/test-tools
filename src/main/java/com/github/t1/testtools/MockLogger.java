@@ -1,9 +1,7 @@
 package com.github.t1.testtools;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import java.util.logging.Filter;
@@ -12,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import static java.lang.String.join;
 import static java.util.logging.Level.CONFIG;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.FINER;
@@ -20,35 +17,29 @@ import static java.util.logging.Level.FINEST;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
+import static java.util.stream.Collectors.joining;
 
 public class MockLogger extends Logger {
-    private final Map<Level, List<String>> logs = new LinkedHashMap<>();
+    private final List<LogRecord> logs = new ArrayList<>();
 
     public MockLogger() {
         super("dummy", null);
-        logs.put(SEVERE, new ArrayList<>());
-        logs.put(WARNING, new ArrayList<>());
-        logs.put(INFO, new ArrayList<>());
-        logs.put(CONFIG, new ArrayList<>());
-        logs.put(FINE, new ArrayList<>());
-        logs.put(FINER, new ArrayList<>());
-        logs.put(FINEST, new ArrayList<>());
     }
 
     @Override public void log(LogRecord record) {
-        logs.get(record.getLevel()).add(record.getMessage());
+        logs.add(record);
     }
 
     @Override public void log(Level level, String msg) {
-        logs.get(level).add(msg);
+        log(new LogRecord(level, msg));
     }
 
     @Override public void log(Level level, Supplier<String> msgSupplier) {
-        logs.get(level).add(msgSupplier.get());
+        log(new LogRecord(level, msgSupplier.get()));
     }
 
     @Override public void log(Level level, String msg, Object param1) {
-        logs.get(level).add(msg.replace("{}", param1.toString()));
+        log(new LogRecord(level, msg.replace("{}", param1.toString())));
     }
 
     @Override public void log(Level level, String msg, Object[] params) {
@@ -136,59 +127,59 @@ public class MockLogger extends Logger {
     }
 
     @Override public void severe(String msg) {
-        logs.get(SEVERE).add(msg);
+        log(new LogRecord(SEVERE, msg));
     }
 
     @Override public void warning(String msg) {
-        logs.get(WARNING).add(msg);
+        log(new LogRecord(WARNING, msg));
     }
 
     @Override public void info(String msg) {
-        logs.get(INFO).add(msg);
+        log(new LogRecord(INFO, msg));
     }
 
     @Override public void config(String msg) {
-        logs.get(CONFIG).add(msg);
+        log(new LogRecord(CONFIG, msg));
     }
 
     @Override public void fine(String msg) {
-        logs.get(FINE).add(msg);
+        log(new LogRecord(FINE, msg));
     }
 
     @Override public void finer(String msg) {
-        logs.get(FINER).add(msg);
+        log(new LogRecord(FINER, msg));
     }
 
     @Override public void finest(String msg) {
-        logs.get(FINEST).add(msg);
+        log(new LogRecord(FINEST, msg));
     }
 
     @Override public void severe(Supplier<String> msgSupplier) {
-        logs.get(SEVERE).add(msgSupplier.get());
+        log(new LogRecord(SEVERE, msgSupplier.get()));
     }
 
     @Override public void warning(Supplier<String> msgSupplier) {
-        logs.get(WARNING).add(msgSupplier.get());
+        log(new LogRecord(WARNING, msgSupplier.get()));
     }
 
     @Override public void info(Supplier<String> msgSupplier) {
-        logs.get(INFO).add(msgSupplier.get());
+        log(new LogRecord(INFO, msgSupplier.get()));
     }
 
     @Override public void config(Supplier<String> msgSupplier) {
-        logs.get(CONFIG).add(msgSupplier.get());
+        log(new LogRecord(CONFIG, msgSupplier.get()));
     }
 
     @Override public void fine(Supplier<String> msgSupplier) {
-        logs.get(FINE).add(msgSupplier.get());
+        log(new LogRecord(FINE, msgSupplier.get()));
     }
 
     @Override public void finer(Supplier<String> msgSupplier) {
-        logs.get(FINER).add(msgSupplier.get());
+        log(new LogRecord(FINER, msgSupplier.get()));
     }
 
     @Override public void finest(Supplier<String> msgSupplier) {
-        logs.get(FINEST).add(msgSupplier.get());
+        log(new LogRecord(FINEST, msgSupplier.get()));
     }
 
     @Override public void setLevel(Level newLevel) throws SecurityException {
@@ -256,6 +247,9 @@ public class MockLogger extends Logger {
     }
 
     public String getMessages(Level level) {
-        return join("\n", logs.get(level));
+        return logs.stream()
+            .filter(record -> record.getLevel().intValue() >= level.intValue())
+            .map(LogRecord::getMessage)
+            .collect(joining("\n"));
     }
 }
