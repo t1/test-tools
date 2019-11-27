@@ -2,27 +2,30 @@ package com.github.t1.testtools;
 
 import lombok.SneakyThrows;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.spi.api.Fraction;
 
 import java.net.URI;
 
-public class WildflySwarmTestRule extends ExternalResource {
+public class WildflySwarmTestExtension implements Extension, BeforeAllCallback, AfterAllCallback {
     private final Swarm swarm = swarm();
 
     @SneakyThrows private static Swarm swarm() { return new Swarm(); }
 
-    @Override public void before() throws Exception { swarm.start(); }
+    @Override public void beforeAll(ExtensionContext context) throws Exception { swarm.start(); }
 
-    @Override @SneakyThrows protected void after() { swarm.stop(); }
+    @Override public void afterAll(ExtensionContext context) throws Exception { swarm.stop(); }
 
-    public WildflySwarmTestRule withProperty(String name, Object value) {
+    public WildflySwarmTestExtension withProperty(String name, Object value) {
         swarm.withProperty(name, (value == null) ? null : value.toString());
         return this;
     }
 
-    public WildflySwarmTestRule withFraction(Fraction<?> fraction) {
+    public WildflySwarmTestExtension withFraction(Fraction<?> fraction) {
         swarm.fraction(fraction);
         return this;
     }
