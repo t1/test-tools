@@ -8,7 +8,7 @@ Collection of test utility classes:
 * Declare a generic `MementoRule` for arbitrary things to restore, using a `Supplier` and a `Consumer`.
 * Log the beginning and end of a test run, by declaring a `TestLoggerRule`.
 
-# Compatibility with JDK-9
+# Compatibility with JDK-9+
 
 The `AbstractPackageDependenciesTest` depends on classes from the `jdeps` tool in JDK 8 residing in the `tools.jar`.
 This file has been removed in JDK 9 and the jdeps classes where moved into the module `jdk.jdeps`,
