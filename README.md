@@ -1,4 +1,4 @@
-# test-tools [![Download](https://api.bintray.com/packages/t1/javaee-helpers/test-tools/images/download.svg) ](https://bintray.com/t1/javaee-helpers/test-tools/_latestVersion) [![Build Status](https://travis-ci.org/t1/test-tools.svg)](https://travis-ci.org/t1/test-tools)
+# test-tools [![Download](https://maven-badges.herokuapp.com/maven-central/com.github.t1/test-tools/badge.svg)](https://search.maven.org/artifact/com.github.t1/test-tools)
 
 Collection of test utility classes:
 
